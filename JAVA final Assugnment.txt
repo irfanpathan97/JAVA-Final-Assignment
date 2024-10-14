@@ -1,0 +1,1402 @@
+1]SHOP MANAGEMENT SYSTEM
+
+Create a Shop Management System to efficiently manage product inventory, customer details, and sales
+transactions.
+Classes:
+Product: Contains product details such as productId, productName, price, stockQuantity.
+Customer: Contains customer details such as customerId, customerName, contactNumber.
+Transaction: Handles sales transactions including product purchase, billing, and updating inventory.
+Features:
+Add, update, and remove products.
+Register new customers and maintain customer records.
+Process product sales and generate bills.
+Show product stock levels and sales reports.
+Note: Use exception handling and file handling and necessary classes wherever required
+
+
+import java.io.*;
+import java.util.*;
+
+class Product {
+    private String productId;
+    private String productName;
+    private double price;
+    private int stockQuantity;
+
+    public Product(String productId, String productName, double price, int stockQuantity) {
+        this.productId = productId;
+        this.productName = productName;
+        this.price = price;
+        this.stockQuantity = stockQuantity;
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public int getStockQuantity() {
+        return stockQuantity;
+    }
+
+    public void setStockQuantity(int stockQuantity) {
+        this.stockQuantity = stockQuantity;
+    }
+
+    @Override
+    public String toString() {
+        return "Product ID: " + productId + ", Name: " + productName + ", Price: " + price + ", Stock: " + stockQuantity;
+    }
+}
+
+class Customer {
+    private String customerId;
+    private String customerName;
+    private String contactNumber;
+
+    public Customer(String customerId, String customerName, String contactNumber) {
+        this.customerId = customerId;
+        this.customerName = customerName;
+        this.contactNumber = contactNumber;
+    }
+
+    @Override
+    public String toString() {
+        return "Customer ID: " + customerId + ", Name: " + customerName + ", Contact: " + contactNumber;
+    }
+}
+
+class Transaction {
+    private List<Product> productsSold = new ArrayList<>();
+    private double totalAmount;
+
+    public void purchase(Product product, int quantity) {
+        if (product.getStockQuantity() < quantity) {
+            throw new IllegalArgumentException("Insufficient stock for " + product.getProductName());
+        }
+        product.setStockQuantity(product.getStockQuantity() - quantity);
+        productsSold.add(product);
+        totalAmount += product.getPrice() * quantity;
+    }
+
+    public void generateBill() {
+        System.out.println("---- Bill ----");
+        for (Product product : productsSold) {
+            System.out.println(product);
+        }
+        System.out.println("Total Amount: " + totalAmount);
+    }
+
+    public List<Product> getProductsSold() {
+        return productsSold;
+    }
+
+    public double getTotalAmount() {
+        return totalAmount;
+    }
+}
+
+class ShopManagementSystem {
+    private List<Product> products = new ArrayList<>();
+    private List<Customer> customers = new ArrayList<>();
+
+    public void addProduct(Product product) {
+        products.add(product);
+        saveProducts();
+    }
+
+    public void updateProduct(String productId, int newStockQuantity) {
+        for (Product product : products) {
+            if (product.getProductId().equals(productId)) {
+                product.setStockQuantity(newStockQuantity);
+                saveProducts();
+                return;
+            }
+        }
+        throw new NoSuchElementException("Product not found!");
+    }
+
+    public void removeProduct(String productId) {
+        products.removeIf(product -> product.getProductId().equals(productId));
+        saveProducts();
+    }
+
+    public void registerCustomer(Customer customer) {
+        customers.add(customer);
+        saveCustomers();
+    }
+
+    public void processSale(String productId, int quantity) {
+        for (Product product : products) {
+            if (product.getProductId().equals(productId)) {
+                Transaction transaction = new Transaction();
+                transaction.purchase(product, quantity);
+                transaction.generateBill();
+                return;
+            }
+        }
+        throw new NoSuchElementException("Product not found!");
+    }
+
+    private void saveProducts() {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("products.dat"))) {
+            out.writeObject(products);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveCustomers() {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("customers.dat"))) {
+            out.writeObject(customers);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public void loadProducts() {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("products.dat"))) {
+            products = (List<Product>) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public void loadCustomers() {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("customers.dat"))) {
+            customers = (List<Customer>) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        ShopManagementSystem shop = new ShopManagementSystem();
+        shop.loadProducts();
+        shop.loadCustomers();
+
+        // Sample operations
+        Product product1 = new Product("P001", "Laptop", 1000.00, 10);
+        Product product2 = new Product("P002", "Smartphone", 500.00, 20);
+        shop.addProduct(product1);
+        shop.addProduct(product2);
+
+        Customer customer = new Customer("C001", "John Doe", "1234567890");
+        shop.registerCustomer(customer);
+
+        try {
+            shop.processSale("P001", 2); 
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        shop.updateProduct("P002", 15); 
+        shop.removeProduct("P001"); 
+    }
+}
+
+
+
+2]RESTAURANT MANAGEMENT SYSTEM
+
+Design a Restaurant Management System to manage menu items, customer orders, and billing.
+Classes:
+MenuItem: Contains itemId, itemName, price.
+CustomerOrder: Manages orders with orderId, itemList, quantity, and totalPrice.
+Restaurant: Maintains overall menu and order records.
+Features:
+Add, update, or remove menu items.
+Place customer orders and calculate the total bill.
+Display menu and current customer orders.
+Generate detailed bills for customers and update the availability of menu items.
+Note: Implement a system to handle multiple customer orders, compute total bills, and display the order
+summary. Use exception handling and file handling and necessary classes wherever required
+
+
+import java.io.*;
+import java.util.*;
+
+class MenuItem {
+    private String itemId;
+    private String itemName;
+    private double price;
+
+    public MenuItem(String itemId, String itemName, double price) {
+        this.itemId = itemId;
+        this.itemName = itemName;
+        this.price = price;
+    }
+
+    public String getItemId() {
+        return itemId;
+    }
+
+    public String getItemName() {
+        return itemName;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    @Override
+    public String toString() {
+        return "Item ID: " + itemId + ", Name: " + itemName + ", Price: " + price;
+    }
+}
+
+class CustomerOrder {
+    private String orderId;
+    private List<MenuItem> itemList = new ArrayList<>();
+    private List<Integer> quantities = new ArrayList<>();
+    private double totalPrice;
+
+    public CustomerOrder(String orderId) {
+        this.orderId = orderId;
+    }
+
+    public void addItem(MenuItem item, int quantity) {
+        itemList.add(item);
+        quantities.add(quantity);
+        totalPrice += item.getPrice() * quantity;
+    }
+
+    public double getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void generateBill() {
+        System.out.println("---- Bill for Order ID: " + orderId + " ----");
+        for (int i = 0; i < itemList.size(); i++) {
+            MenuItem item = itemList.get(i);
+            int quantity = quantities.get(i);
+            System.out.println(item.getItemName() + " x " + quantity + " = " + (item.getPrice() * quantity));
+        }
+        System.out.println("Total Amount: " + totalPrice);
+    }
+
+    public String getOrderId() {
+        return orderId;
+    }
+}
+
+class Restaurant {
+    private List<MenuItem> menuItems = new ArrayList<>();
+    private List<CustomerOrder> orders = new ArrayList<>();
+
+    public void addMenuItem(MenuItem item) {
+        menuItems.add(item);
+        saveMenuItems();
+    }
+
+    public void updateMenuItem(String itemId, String newName, double newPrice) {
+        for (MenuItem item : menuItems) {
+            if (item.getItemId().equals(itemId)) {
+                menuItems.remove(item);
+                MenuItem updatedItem = new MenuItem(itemId, newName, newPrice);
+                menuItems.add(updatedItem);
+                saveMenuItems();
+                return;
+            }
+        }
+        throw new NoSuchElementException("Menu item not found!");
+    }
+
+    public void removeMenuItem(String itemId) {
+        menuItems.removeIf(item -> item.getItemId().equals(itemId));
+        saveMenuItems();
+    }
+
+    public void placeOrder(CustomerOrder order) {
+        orders.add(order);
+    }
+
+    public void displayMenu() {
+        System.out.println("---- Menu ----");
+        for (MenuItem item : menuItems) {
+            System.out.println(item);
+        }
+    }
+
+    public void displayOrders() {
+        System.out.println("---- Current Orders ----");
+        for (CustomerOrder order : orders) {
+            System.out.println("Order ID: " + order.getOrderId() + ", Total: " + order.getTotalPrice());
+        }
+    }
+
+    private void saveMenuItems() {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("menu_items.dat"))) {
+            out.writeObject(menuItems);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public void loadMenuItems() {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("menu_items.dat"))) {
+            menuItems = (List<MenuItem>) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Restaurant restaurant = new Restaurant();
+        restaurant.loadMenuItems();
+
+        
+        MenuItem item1 = new MenuItem("M001", "Burger", 5.99);
+        MenuItem item2 = new MenuItem("M002", "Pizza", 8.99);
+        MenuItem item3 = new MenuItem("M003", "Pasta", 7.49);
+        
+        restaurant.addMenuItem(item1);
+        restaurant.addMenuItem(item2);
+        restaurant.addMenuItem(item3);
+
+               restaurant.displayMenu();
+
+        
+        CustomerOrder order1 = new CustomerOrder("O001");
+        order1.addItem(item1, 2); 
+        order1.addItem(item2, 1); 
+        restaurant.placeOrder(order1);
+        
+                order1.generateBill();
+
+               restaurant.displayOrders();
+
+       
+        restaurant.updateMenuItem("M003", "Veg Pasta", 7.99); 
+               restaurant.removeMenuItem("M002");     }
+}
+
+
+3]AIRLINE TICKET BOOKING SYSTEM
+
+Build an Airline Ticket Booking System to manage flight details, customer bookings, and ticket pricing.
+Classes:
+Flight: Contains flightId, destination, departureTime, availableSeats, ticketPrice.
+Customer: Contains customerId, customerName, contactNumber.
+Booking: Handles ticket bookings with bookingId, flightId, customerId, and numTickets.
+Features:
+Add, update, or cancel flight schedules.
+Book tickets for available flights and ensure seat availability.
+Calculate total ticket cost and generate receipts.
+Display all flights with available seats and booking history.
+Note: Implement a booking system that checks seat availability and computes total ticket cost based on the
+number of seats booked. Use exception handling and file handling and necessary classes wherever required
+
+
+import java.io.*;
+import java.util.*;
+
+class Flight {
+    private String flightId;
+    private String destination;
+    private String departureTime;
+    private int availableSeats;
+    private double ticketPrice;
+
+    public Flight(String flightId, String destination, String departureTime, int availableSeats, double ticketPrice) {
+        this.flightId = flightId;
+        this.destination = destination;
+        this.departureTime = departureTime;
+        this.availableSeats = availableSeats;
+        this.ticketPrice = ticketPrice;
+    }
+
+    public String getFlightId() {
+        return flightId;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public String getDepartureTime() {
+        return departureTime;
+    }
+
+    public int getAvailableSeats() {
+        return availableSeats;
+    }
+
+    public double getTicketPrice() {
+        return ticketPrice;
+    }
+
+    public void bookSeats(int numTickets) {
+        if (availableSeats < numTickets) {
+            throw new IllegalArgumentException("Not enough seats available.");
+        }
+        availableSeats -= numTickets;
+    }
+
+    public void cancelSeats(int numTickets) {
+        availableSeats += numTickets;
+    }
+
+    @Override
+    public String toString() {
+        return "Flight ID: " + flightId + ", Destination: " + destination + ", Departure: " + departureTime +
+                ", Available Seats: " + availableSeats + ", Ticket Price: " + ticketPrice;
+    }
+}
+
+class Customer {
+    private String customerId;
+    private String customerName;
+    private String contactNumber;
+
+    public Customer(String customerId, String customerName, String contactNumber) {
+        this.customerId = customerId;
+        this.customerName = customerName;
+        this.contactNumber = contactNumber;
+    }
+
+    public String getCustomerId() {
+        return customerId;
+    }
+
+    @Override
+    public String toString() {
+        return "Customer ID: " + customerId + ", Name: " + customerName + ", Contact: " + contactNumber;
+    }
+}
+
+class Booking {
+    private String bookingId;
+    private String flightId;
+    private String customerId;
+    private int numTickets;
+
+    public Booking(String bookingId, String flightId, String customerId, int numTickets) {
+        this.bookingId = bookingId;
+        this.flightId = flightId;
+        this.customerId = customerId;
+        this.numTickets = numTickets;
+    }
+
+    public String getBookingId() {
+        return bookingId;
+    }
+
+    public double calculateTotalCost(Flight flight) {
+        return flight.getTicketPrice() * numTickets;
+    }
+
+    @Override
+    public String toString() {
+        return "Booking ID: " + bookingId + ", Flight ID: " + flightId + ", Customer ID: " + customerId + ", Tickets: " + numTickets;
+    }
+}
+
+class AirlineBookingSystem {
+    private List<Flight> flights = new ArrayList<>();
+    private List<Customer> customers = new ArrayList<>();
+    private List<Booking> bookings = new ArrayList<>();
+
+    public void addFlight(Flight flight) {
+        flights.add(flight);
+        saveFlights();
+    }
+
+    public void updateFlight(String flightId, int newAvailableSeats, double newTicketPrice) {
+        for (Flight flight : flights) {
+            if (flight.getFlightId().equals(flightId)) {
+                flight.cancelSeats(flight.getAvailableSeats() - newAvailableSeats);
+                flight.ticketPrice = newTicketPrice; 
+                saveFlights();
+                return;
+            }
+        }
+        throw new NoSuchElementException("Flight not found!");
+    }
+
+    public void cancelFlight(String flightId) {
+        flights.removeIf(flight -> flight.getFlightId().equals(flightId));
+        saveFlights();
+    }
+
+    public void bookTicket(String flightId, String customerId, int numTickets) {
+        for (Flight flight : flights) {
+            if (flight.getFlightId().equals(flightId)) {
+                flight.bookSeats(numTickets);
+                String bookingId = UUID.randomUUID().toString();
+                Booking booking = new Booking(bookingId, flightId, customerId, numTickets);
+                bookings.add(booking);
+                saveBookings();
+                System.out.println("Booking successful: " + booking);
+                System.out.println("Total Cost: " + booking.calculateTotalCost(flight));
+                return;
+            }
+        }
+        throw new NoSuchElementException("Flight not found!");
+    }
+
+    public void displayFlights() {
+        System.out.println("---- Available Flights ----");
+        for (Flight flight : flights) {
+            System.out.println(flight);
+        }
+    }
+
+    public void displayBookings() {
+        System.out.println("---- Booking History ----");
+        for (Booking booking : bookings) {
+            System.out.println(booking);
+        }
+    }
+
+    private void saveFlights() {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("flights.dat"))) {
+            out.writeObject(flights);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveBookings() {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("bookings.dat"))) {
+            out.writeObject(bookings);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public void loadFlights() {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("flights.dat"))) {
+            flights = (List<Flight>) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public void loadBookings() {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("bookings.dat"))) {
+            bookings = (List<Booking>) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        AirlineBookingSystem airlineSystem = new AirlineBookingSystem();
+        airlineSystem.loadFlights();
+        airlineSystem.loadBookings();
+
+        
+        Flight flight1 = new Flight("FL001", "New York", "2024-10-01 10:00", 100, 300.00);
+        Flight flight2 = new Flight("FL002", "Los Angeles", "2024-10-01 15:00", 80, 250.00);
+        
+        airlineSystem.addFlight(flight1);
+        airlineSystem.addFlight(flight2);
+
+        // Display available flights
+        airlineSystem.displayFlights();
+
+       
+        Customer customer = new Customer("C001", "Alice Smith", "1234567890");
+        airlineSystem.customers.add(customer); 
+
+        
+        try {
+            airlineSystem.bookTicket("FL001", customer.getCustomerId(), 2); 
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+               airlineSystem.displayBookings();
+
+       
+        airlineSystem.updateFlight("FL002", 60, 270.00); 
+               airlineSystem.cancelFlight("FL001"); 
+    }
+}
+
+
+4]HOTEL RESERVATION SYSTEM
+
+Create a Hotel Reservation System to handle room bookings, customer records, and reservation billing.
+Classes:
+Room: Contains roomId, roomType, pricePerNight, availability.
+Customer: Contains customerId, customerName, contactNumber.
+Reservation: Manages room bookings with reservationId, roomId, customerId, checkInDate, and
+checkOutDate.
+Features:
+View available rooms and book rooms for a customer.
+Calculate total stay cost based on the number of nights.
+Update room availability after each booking or check-out.
+Display current reservations and generate invoices for customers.
+Note: Implement room booking functionality with date checks and generate an invoice showing the total stay
+cost. Use exception handling and file handling and necessary classes wherever required
+
+
+import java.io.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+class Room {
+    private String roomId;
+    private String roomType;
+    private double pricePerNight;
+    private boolean availability;
+
+    public Room(String roomId, String roomType, double pricePerNight) {
+        this.roomId = roomId;
+        this.roomType = roomType;
+        this.pricePerNight = pricePerNight;
+        this.availability = true;     }
+
+    public String getRoomId() {
+        return roomId;
+    }
+
+    public String getRoomType() {
+        return roomType;
+    }
+
+    public double getPricePerNight() {
+        return pricePerNight;
+    }
+
+    public boolean isAvailable() {
+        return availability;
+    }
+
+    public void bookRoom() {
+        availability = false;
+    }
+
+    public void freeRoom() {
+        availability = true;
+    }
+
+    @Override
+    public String toString() {
+        return "Room ID: " + roomId + ", Type: " + roomType + ", Price per Night: " + pricePerNight + ", Available: " + availability;
+    }
+}
+
+class Customer {
+    private String customerId;
+    private String customerName;
+    private String contactNumber;
+
+    public Customer(String customerId, String customerName, String contactNumber) {
+        this.customerId = customerId;
+        this.customerName = customerName;
+        this.contactNumber = contactNumber;
+    }
+
+    public String getCustomerId() {
+        return customerId;
+    }
+
+    @Override
+    public String toString() {
+        return "Customer ID: " + customerId + ", Name: " + customerName + ", Contact: " + contactNumber;
+    }
+}
+
+class Reservation {
+    private String reservationId;
+    private String roomId;
+    private String customerId;
+    private Date checkInDate;
+    private Date checkOutDate;
+
+    public Reservation(String reservationId, String roomId, String customerId, Date checkInDate, Date checkOutDate) {
+        this.reservationId = reservationId;
+        this.roomId = roomId;
+        this.customerId = customerId;
+        this.checkInDate = checkInDate;
+        this.checkOutDate = checkOutDate;
+    }
+
+    public String getReservationId() {
+        return reservationId;
+    }
+
+    public double calculateTotalCost(Room room) {
+        long duration = checkOutDate.getTime() - checkInDate.getTime();
+        int nights = (int) (duration / (1000 * 60 * 60 * 24));
+        return room.getPricePerNight() * nights;
+    }
+
+    @Override
+    public String toString() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        return "Reservation ID: " + reservationId + ", Room ID: " + roomId + ", Customer ID: " + customerId +
+                ", Check-In: " + sdf.format(checkInDate) + ", Check-Out: " + sdf.format(checkOutDate);
+    }
+}
+
+class HotelReservationSystem {
+    private List<Room> rooms = new ArrayList<>();
+    private List<Customer> customers = new ArrayList<>();
+    private List<Reservation> reservations = new ArrayList<>();
+
+    public void addRoom(Room room) {
+        rooms.add(room);
+        saveRooms();
+    }
+
+    public void addCustomer(Customer customer) {
+        customers.add(customer);
+        saveCustomers();
+    }
+
+    public void bookRoom(String roomId, String customerId, Date checkInDate, Date checkOutDate) {
+        for (Room room : rooms) {
+            if (room.getRoomId().equals(roomId) && room.isAvailable()) {
+                String reservationId = UUID.randomUUID().toString();
+                Reservation reservation = new Reservation(reservationId, roomId, customerId, checkInDate, checkOutDate);
+                reservations.add(reservation);
+                room.bookRoom();
+                saveReservations();
+                System.out.println("Booking successful: " + reservation);
+                System.out.println("Total Cost: " + reservation.calculateTotalCost(room));
+                return;
+            }
+        }
+        throw new NoSuchElementException("Room not available or not found!");
+    }
+
+    public void displayAvailableRooms() {
+        System.out.println("---- Available Rooms ----");
+        for (Room room : rooms) {
+            if (room.isAvailable()) {
+                System.out.println(room);
+            }
+        }
+    }
+
+    public void displayReservations() {
+        System.out.println("---- Current Reservations ----");
+        for (Reservation reservation : reservations) {
+            System.out.println(reservation);
+        }
+    }
+
+    private void saveRooms() {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("rooms.dat"))) {
+            out.writeObject(rooms);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveCustomers() {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("customers.dat"))) {
+            out.writeObject(customers);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveReservations() {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("reservations.dat"))) {
+            out.writeObject(reservations);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public void loadRooms() {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("rooms.dat"))) {
+            rooms = (List<Room>) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public void loadCustomers() {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("customers.dat"))) {
+            customers = (List<Customer>) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public void loadReservations() {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("reservations.dat"))) {
+            reservations = (List<Reservation>) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        HotelReservationSystem hotelSystem = new HotelReservationSystem();
+        hotelSystem.loadRooms();
+        hotelSystem.loadCustomers();
+        hotelSystem.loadReservations();
+
+        
+        Room room1 = new Room("R001", "Single", 100.00);
+        Room room2 = new Room("R002", "Double", 150.00);
+        Room room3 = new Room("R003", "Suite", 250.00);
+        
+        hotelSystem.addRoom(room1);
+        hotelSystem.addRoom(room2);
+        hotelSystem.addRoom(room3);
+
+        
+        Customer customer1 = new Customer("C001", "John Doe", "1234567890");
+        hotelSystem.addCustomer(customer1);
+
+        
+        hotelSystem.displayAvailableRooms();
+
+        
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date checkInDate = sdf.parse("2024-10-01");
+            Date checkOutDate = sdf.parse("2024-10-05");
+            hotelSystem.bookRoom("R002", customer1.getCustomerId(), checkInDate, checkOutDate);
+        } catch (ParseException | NoSuchElementException e) {
+            System.out.println(e.getMessage());
+        }
+
+        
+        hotelSystem.displayReservations();
+    }
+}
+
+
+5]Cinema Booking System
+
+Create a Cinema Booking System to manage movie screenings, seat bookings, and customer transactions.
+Classes:
+Movie: Contains movieId and title.
+Showtime: Manages movie showings with showtimeId, associated Movie, and a list of Seat objects.
+Seat: Represents individual seats with seatId and availability status.
+Booking: Contains bookingId, the associated Showtime, and a list of booked Seat objects.
+Features:
+Add new movies and showtimes to the system.
+Check seat availability for a given showtime.
+Book multiple seats for a showtime, with exception handling for unavailable seats.
+Log successful bookings in a specified log file for record-keeping.
+Note: Implement functionality to ensure proper seat booking, including logging details of each booking and
+Use exception handling and file handling and necessary classes wherever required
+
+
+
+import java.io.*;
+import java.util.*;
+
+class Movie {
+    private String movieId;
+    private String title;
+
+    public Movie(String movieId, String title) {
+        this.movieId = movieId;
+        this.title = title;
+    }
+
+    public String getMovieId() {
+        return movieId;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    @Override
+    public String toString() {
+        return "Movie ID: " + movieId + ", Title: " + title;
+    }
+}
+
+class Seat {
+    private String seatId;
+    private boolean available;
+
+    public Seat(String seatId) {
+        this.seatId = seatId;
+        this.available = true; 
+    }
+
+    public String getSeatId() {
+        return seatId;
+    }
+
+    public boolean isAvailable() {
+        return available;
+    }
+
+    public void bookSeat() {
+        available = false;
+    }
+
+    public void freeSeat() {
+        available = true;
+    }
+
+    @Override
+    public String toString() {
+        return "Seat ID: " + seatId + ", Available: " + available;
+    }
+}
+
+class Showtime {
+    private String showtimeId;
+    private Movie movie;
+    private List<Seat> seats;
+
+    public Showtime(String showtimeId, Movie movie, int seatCount) {
+        this.showtimeId = showtimeId;
+        this.movie = movie;
+        this.seats = new ArrayList<>();
+        for (int i = 1; i <= seatCount; i++) {
+            seats.add(new Seat("Seat-" + i));
+        }
+    }
+
+    public String getShowtimeId() {
+        return showtimeId;
+    }
+
+    public Movie getMovie() {
+        return movie;
+    }
+
+    public List<Seat> getSeats() {
+        return seats;
+    }
+
+    public List<Seat> checkSeatAvailability() {
+        List<Seat> availableSeats = new ArrayList<>();
+        for (Seat seat : seats) {
+            if (seat.isAvailable()) {
+                availableSeats.add(seat);
+            }
+        }
+        return availableSeats;
+    }
+
+    @Override
+    public String toString() {
+        return "Showtime ID: " + showtimeId + ", Movie: " + movie.getTitle() + ", Seats: " + seats.size();
+    }
+}
+
+class Booking {
+    private String bookingId;
+    private Showtime showtime;
+    private List<Seat> bookedSeats;
+
+    public Booking(String bookingId, Showtime showtime, List<Seat> bookedSeats) {
+        this.bookingId = bookingId;
+        this.showtime = showtime;
+        this.bookedSeats = bookedSeats;
+    }
+
+    public String getBookingId() {
+        return bookingId;
+    }
+
+    public void logBooking() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("booking_log.txt", true))) {
+            writer.write("Booking ID: " + bookingId + ", Showtime ID: " + showtime.getShowtimeId() + ", Seats: ");
+            for (Seat seat : bookedSeats) {
+                writer.write(seat.getSeatId() + " ");
+            }
+            writer.write("\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+class CinemaBookingSystem {
+    private List<Movie> movies = new ArrayList<>();
+    private List<Showtime> showtimes = new ArrayList<>();
+
+    public void addMovie(Movie movie) {
+        movies.add(movie);
+    }
+
+    public void addShowtime(Showtime showtime) {
+        showtimes.add(showtime);
+    }
+
+    public List<Showtime> getShowtimes() {
+        return showtimes;
+    }
+
+    public void bookSeats(String showtimeId, List<String> seatIds) {
+        for (Showtime showtime : showtimes) {
+            if (showtime.getShowtimeId().equals(showtimeId)) {
+                List<Seat> bookedSeats = new ArrayList<>();
+                for (String seatId : seatIds) {
+                    for (Seat seat : showtime.getSeats()) {
+                        if (seat.getSeatId().equals(seatId)) {
+                            if (seat.isAvailable()) {
+                                seat.bookSeat();
+                                bookedSeats.add(seat);
+                            } else {
+                                throw new IllegalArgumentException("Seat " + seatId + " is not available.");
+                            }
+                        }
+                    }
+                }
+                if (bookedSeats.size() == seatIds.size()) {
+                    String bookingId = UUID.randomUUID().toString();
+                    Booking booking = new Booking(bookingId, showtime, bookedSeats);
+                    booking.logBooking();
+                    System.out.println("Booking successful: " + bookingId);
+                } else {
+                    throw new IllegalArgumentException("Some seats are not available.");
+                }
+                return;
+            }
+        }
+        throw new NoSuchElementException("Showtime not found!");
+    }
+
+    public void displayAvailableSeats(String showtimeId) {
+        for (Showtime showtime : showtimes) {
+            if (showtime.getShowtimeId().equals(showtimeId)) {
+                List<Seat> availableSeats = showtime.checkSeatAvailability();
+                System.out.println("Available Seats for " + showtime.getMovie().getTitle() + ":");
+                for (Seat seat : availableSeats) {
+                    System.out.println(seat);
+                }
+                return;
+            }
+        }
+        throw new NoSuchElementException("Showtime not found!");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        CinemaBookingSystem cinemaSystem = new CinemaBookingSystem();
+
+        
+        Movie movie1 = new Movie("M001", "Inception");
+        Movie movie2 = new Movie("M002", "The Matrix");
+        cinemaSystem.addMovie(movie1);
+        cinemaSystem.addMovie(movie2);
+
+        
+        Showtime showtime1 = new Showtime("S001", movie1, 10);
+        Showtime showtime2 = new Showtime("S002", movie2, 10);
+        cinemaSystem.addShowtime(showtime1);
+        cinemaSystem.addShowtime(showtime2);
+
+       
+        cinemaSystem.displayAvailableSeats("S001");
+
+        
+        try {
+            List<String> seatsToBook = Arrays.asList("Seat-1", "Seat-2");
+            cinemaSystem.bookSeats("S001", seatsToBook);
+            cinemaSystem.displayAvailableSeats("S001"); 
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        
+        try {
+            List<String> seatsToBook = Arrays.asList("Seat-1");
+            cinemaSystem.bookSeats("S001", seatsToBook);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+}
+
+
+6]Vehicle Rental System
+
+Create a Vehicle Rental System to manage vehicle rentals, customer information, and rental transactions.
+Classes:
+Customer: Contains customerId, name.
+Vehicle: Contains vehicleId, type, isAvailable.
+Rental: Manages rentals with rentalId, vehicle, customer, and rentalDuration.
+Features:
+View available vehicles and rent them to customers.
+Log rental transactions and returns in a log file.
+Check vehicle availability before renting.
+Update vehicle status upon rental and return.
+Handle exceptions for unavailable vehicles.
+Note: Implement rental functionality with checks for vehicle availability and maintain detailed logs of
+rentals. Use exception handling and file handling and necessary classes wherever required
+
+import java.io.*;
+import java.util.*;
+
+class Customer {
+    private String customerId;
+    private String name;
+
+    public Customer(String customerId, String name) {
+        this.customerId = customerId;
+        this.name = name;
+    }
+
+    public String getCustomerId() {
+        return customerId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return "Customer ID: " + customerId + ", Name: " + name;
+    }
+}
+
+class Vehicle {
+    private String vehicleId;
+    private String type;
+    private boolean isAvailable;
+
+    public Vehicle(String vehicleId, String type) {
+        this.vehicleId = vehicleId;
+        this.type = type;
+        this.isAvailable = true; 
+    }
+
+    public String getVehicleId() {
+        return vehicleId;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public boolean isAvailable() {
+        return isAvailable;
+    }
+
+    public void rentVehicle() {
+        isAvailable = false;
+    }
+
+    public void returnVehicle() {
+        isAvailable = true;
+    }
+
+    @Override
+    public String toString() {
+        return "Vehicle ID: " + vehicleId + ", Type: " + type + ", Available: " + isAvailable;
+    }
+}
+
+class Rental {
+    private String rentalId;
+    private Vehicle vehicle;
+    private Customer customer;
+    private int rentalDuration; 
+
+    public Rental(String rentalId, Vehicle vehicle, Customer customer, int rentalDuration) {
+        this.rentalId = rentalId;
+        this.vehicle = vehicle;
+        this.customer = customer;
+        this.rentalDuration = rentalDuration;
+    }
+
+    public String getRentalId() {
+        return rentalId;
+    }
+
+    public Vehicle getVehicle() {
+        return vehicle;
+    }
+
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public int getRentalDuration() {
+        return rentalDuration;
+    }
+
+    public void logRental() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("rental_log.txt", true))) {
+            writer.write("Rental ID: " + rentalId + ", Vehicle ID: " + vehicle.getVehicleId() + ", Customer ID: " + customer.getCustomerId() + ", Duration: " + rentalDuration + " days\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void logReturn() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("rental_log.txt", true))) {
+            writer.write("Return ID: " + rentalId + ", Vehicle ID: " + vehicle.getVehicleId() + ", Customer ID: " + customer.getCustomerId() + ", Duration: " + rentalDuration + " days\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+class VehicleRentalSystem {
+    private List<Vehicle> vehicles = new ArrayList<>();
+    private List<Customer> customers = new ArrayList<>();
+    private List<Rental> rentals = new ArrayList<>();
+
+    public void addVehicle(Vehicle vehicle) {
+        vehicles.add(vehicle);
+    }
+
+    public void addCustomer(Customer customer) {
+        customers.add(customer);
+    }
+
+    public List<Vehicle> getAvailableVehicles() {
+        List<Vehicle> availableVehicles = new ArrayList<>();
+        for (Vehicle vehicle : vehicles) {
+            if (vehicle.isAvailable()) {
+                availableVehicles.add(vehicle);
+            }
+        }
+        return availableVehicles;
+    }
+
+    public void rentVehicle(String vehicleId, String customerId, int rentalDuration) {
+        Vehicle selectedVehicle = null;
+        Customer selectedCustomer = null;
+
+        for (Vehicle vehicle : vehicles) {
+            if (vehicle.getVehicleId().equals(vehicleId)) {
+                selectedVehicle = vehicle;
+                break;
+            }
+        }
+
+        for (Customer customer : customers) {
+            if (customer.getCustomerId().equals(customerId)) {
+                selectedCustomer = customer;
+                break;
+            }
+        }
+
+        if (selectedVehicle == null) {
+            throw new NoSuchElementException("Vehicle not found!");
+        }
+
+        if (selectedCustomer == null) {
+            throw new NoSuchElementException("Customer not found!");
+        }
+
+        if (!selectedVehicle.isAvailable()) {
+            throw new IllegalArgumentException("Vehicle is not available for rent.");
+        }
+
+        selectedVehicle.rentVehicle();
+        String rentalId = UUID.randomUUID().toString();
+        Rental rental = new Rental(rentalId, selectedVehicle, selectedCustomer, rentalDuration);
+        rentals.add(rental);
+        rental.logRental();
+
+        System.out.println("Rental successful: " + rentalId);
+    }
+
+    public void returnVehicle(String rentalId) {
+        for (Rental rental : rentals) {
+            if (rental.getRentalId().equals(rentalId)) {
+                rental.getVehicle().returnVehicle();
+                rental.logReturn();
+                System.out.println("Return successful for Rental ID: " + rentalId);
+                return;
+            }
+        }
+        throw new NoSuchElementException("Rental not found!");
+    }
+
+    public void displayAvailableVehicles() {
+        System.out.println("---- Available Vehicles ----");
+        List<Vehicle> availableVehicles = getAvailableVehicles();
+        if (availableVehicles.isEmpty()) {
+            System.out.println("No vehicles available.");
+        } else {
+            for (Vehicle vehicle : availableVehicles) {
+                System.out.println(vehicle);
+            }
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        VehicleRentalSystem rentalSystem = new VehicleRentalSystem();
+
+        
+        Customer customer1 = new Customer("C001", "Alice");
+        Customer customer2 = new Customer("C002", "Bob");
+        rentalSystem.addCustomer(customer1);
+        rentalSystem.addCustomer(customer2);
+
+        
+        Vehicle vehicle1 = new Vehicle("V001", "Sedan");
+        Vehicle vehicle2 = new Vehicle("V002", "SUV");
+        rentalSystem.addVehicle(vehicle1);
+        rentalSystem.addVehicle(vehicle2);
+
+        
+
+        rentalSystem.displayAvailableVehicles();
+
+        
+        try {
+            rentalSystem.rentVehicle("V001", "C001", 5);
+            rentalSystem.displayAvailableVehicles(); 
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+       
+        try {
+            rentalSystem.returnVehicle("some-rental-id"); 
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+       
+        try {
+            rentalSystem.rentVehicle("V001", "C002", 3); 
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        
+        try {
+            rentalSystem.returnVehicle("some-valid-rental-id");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+}
+
+
+
